@@ -189,6 +189,7 @@ echo ""
 echo "Schritt 5: Trage Übersetzungen ein..."
 SCRIPT_DIR=$(dirname "$0")
 sh "${SCRIPT_DIR}/inst_strings.sh" install
+sh "${SCRIPT_DIR}/inst_webui.sh" install
 
 mount -o remount,ro / 2>/dev/null
 
