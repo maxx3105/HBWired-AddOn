@@ -111,6 +111,7 @@ do_install() {
     add_elvst "ALARM_MIN_VOLTAGE"              "stringTableHbwAlarmMinVoltage"
     add_elvst "KEY_EVENT_ALARM"                "stringTableHbwKeyEventAlarm"
     add_elvst "OWN_ADDRESS"                    "stringTableHbwOwnAddress"
+    add_elvst "REMOVE_SENSOR"                  "stringTableHbwRemoveSensor"
 
     echo "=== inst_webui.sh: install done ==="
 }
@@ -139,7 +140,7 @@ do_uninstall() {
         DEFAULT_SET_POINT DERIVATIVE INTEGRAL POWERON_MODE PROPORTIONAL \
         AUTO_CYCLE CHARACTERS_PER_LINE DISPLAY_LINES INVERT_DISPLAY \
         REFRESH_RATE DEFAULT_TEXT ALARM_MAX_POWER ALARM_MAX_VOLTAGE \
-        ALARM_MIN_VOLTAGE KEY_EVENT_ALARM OWN_ADDRESS
+        ALARM_MIN_VOLTAGE KEY_EVENT_ALARM OWN_ADDRESS REMOVE_SENSOR
     do
         del_elvst "${PARAM}"
     done
