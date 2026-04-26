@@ -2,99 +2,50 @@
 # ============================================================
 # inst_strings.sh - HBWired AddOn Stringtable Integration
 #
-# stringtable_de.txt           -> Mapping ParameterID -> stringTable-Key
-# translate.lang.extension.js  -> stringTable-Key -> lesbarer Text (Statusansicht)
-# translate.lang.stringtable.js -> stringTable-Key -> lesbarer Text (Kanalparameter)
+# stringtable_de.txt            -> Mapping ParameterID -> stringTable-Key
+# translate.lang.stringtable.js -> stringTable-Key -> lesbarer Text
 # ============================================================
 
 STRINGTABLE=/www/config/stringtable_de.txt
-EXTENSION_DE=/www/webui/js/lang/de/translate.lang.extension.js
-EXTENSION_EN=/www/webui/js/lang/en/translate.lang.extension.js
 STRINGTABLE_JS_DE=/www/webui/js/lang/de/translate.lang.stringtable.js
 STRINGTABLE_JS_EN=/www/webui/js/lang/en/translate.lang.stringtable.js
 
 # -------------------------------------------------------
-# Fuegt Zeile in stringtable_de.txt ein, falls nicht vorhanden.
-# Format: KEY<TAB>${stringTableKey}
+# Fuegt Zeile in stringtable_de.txt ein (falls nicht vorhanden)
 # -------------------------------------------------------
 add_st() {
     local KEY="$1"
     local VALKEY="$2"
-    if ! grep -qF "${KEY}	" "${STRINGTABLE}"; then
-        HB_INS=$(printf '%s\t${%s}' "${KEY}" "${VALKEY}")
-        export HB_INS
-        awk 'BEGIN { ins=ENVIRON["HB_INS"]; done=0 }
-             { print }
-             END { if (!done) { print ins } }' \
-            "${STRINGTABLE}" > "${STRINGTABLE}.tmp" \
-            && mv "${STRINGTABLE}.tmp" "${STRINGTABLE}"
+    if [ -z "$(grep "$KEY" $STRINGTABLE)" ]; then
+        echo -e "${KEY}\t\${${VALKEY}}" >> $STRINGTABLE
         echo "  stringtable: +${KEY}"
     fi
 }
 
 del_st() {
     local KEY="$1"
-    HB_DEL="${KEY}	"
-    export HB_DEL
-    awk 'BEGIN { del=ENVIRON["HB_DEL"] }
-         index($0, del) != 1 { print }' \
-        "${STRINGTABLE}" > "${STRINGTABLE}.tmp" \
-        && mv "${STRINGTABLE}.tmp" "${STRINGTABLE}"
+    sed -i "/^${KEY}	/d" $STRINGTABLE
 }
 
 # -------------------------------------------------------
-# Fuegt Eintrag in translate.lang.extension.js ein.
-# Anker: die letzte Zeile die nur "  }" enthaelt
+# Fuegt Eintrag in translate.lang.stringtable.js ein
+# Anker: "dummy" : "",
 # -------------------------------------------------------
 add_tr() {
     local FILE="$1"
     local KEY="$2"
     local VAL="$3"
-    # Datei muss existieren
-    if [ ! -f "${FILE}" ]; then
-        return 0
-    fi
-    if ! grep -qF "\"${KEY}\"" "${FILE}"; then
-        HB_INS="    \"${KEY}\" : \"${VAL}\","
-        export HB_INS
-        # Anker je nach Dateityp
-        case "${FILE}" in
-            *stringtable*) ANCHOR="};" ;;
-            *extension*)   ANCHOR="\"theEnd\"" ;;
-            *)             ANCHOR="};" ;;
-        esac
-        export ANCHOR
-        awk 'BEGIN { ins=ENVIRON["HB_INS"]; anchor=ENVIRON["ANCHOR"] }
-             { lines[NR]=$0 }
-             END {
-                 last=0
-                 for(i=NR;i>=1;i--) {
-                     if(index(lines[i], anchor) > 0) { last=i; break }
-                 }
-                 prev=last-1
-                 if(prev>=1 && lines[prev] !~ /,$/ && lines[prev] !~ /^[[:space:]]*\/\//) {
-                     lines[prev] = lines[prev] ","
-                 }
-                 for(i=1;i<=NR;i++) {
-                     if(i==last) print ins
-                     print lines[i]
-                 }
-             }' \
-            "${FILE}" > "${FILE}.tmp" \
-            && mv "${FILE}.tmp" "${FILE}"
-        echo "  translation: +${KEY} in $(basename ${FILE})"
+    if [ ! -f "$FILE" ]; then return 0; fi
+    if [ -z "$(grep "\"${KEY}\"" $FILE)" ]; then
+        sed -i "s/\"dummy\" : \"\",/\"dummy\" : \"\",\n    \"${KEY}\" : \"${VAL}\",/" $FILE
+        echo "  translation: +${KEY} in $(basename $FILE)"
     fi
 }
 
 del_tr() {
     local FILE="$1"
     local KEY="$2"
-    HB_DEL="\"${KEY}\""
-    export HB_DEL
-    awk 'BEGIN { del=ENVIRON["HB_DEL"] }
-         index($0, del) == 0 { print }' \
-        "${FILE}" > "${FILE}.tmp" \
-        && mv "${FILE}.tmp" "${FILE}"
+    sed -i "/\"${KEY}\"/d" $FILE
 }
 
 # -------------------------------------------------------
@@ -111,14 +62,12 @@ do_install() {
     add_st "TEMPSENSOR|OFFSET"                "stringTableHbwOffset"
     add_st "TEMPSENSOR|ONEWIRE_TYPE"          "stringTableHbwOnewireType"
     add_st "TEMPSENSOR|TEMPERATURE"           "stringTableHbwTemperature"
-
     # SENSOR
     add_st "SENSOR|EVENT_DELAYTIME"           "stringTableHbwEventDelaytime"
     add_st "SENSOR|INPUT_LOCKED"              "stringTableHbwInputLocked"
     add_st "SENSOR|INVERTED"                  "stringTableHbwInverted"
     add_st "SENSOR|NOTIFY"                    "stringTableHbwNotify"
     add_st "SENSOR|TRANSMIT_TRY_MAX"          "stringTableHbwTransmitTryMax"
-
     # KEY
     add_st "KEY|INPUT_TYPE"                   "stringTableHbwInputType"
     add_st "KEY|INPUT_LOCKED"                 "stringTableHbwInputLocked"
@@ -129,13 +78,11 @@ do_install() {
     add_st "KEY|SUPPRESS_NUM"                 "stringTableHbwSuppressNum"
     add_st "KEY|SUPPRESS_TIME"                "stringTableHbwSuppressTime"
     add_st "KEY|BUZZER"                       "stringTableHbwBuzzer"
-
     # SWITCH
     add_st "SWITCH|INVERTED"                  "stringTableHbwInverted"
     add_st "SWITCH|LOGGING"                   "stringTableHbwLogging"
     add_st "SWITCH|OUTPUT_BEHAVIOUR"          "stringTableHbwOutputBehaviour"
     add_st "SWITCH|OUTPUT_LOCKED"             "stringTableHbwOutputLocked"
-
     # DIMMER
     add_st "DIMMER|AUTO_BRIGHTNESS"           "stringTableHbwAutoBrightness"
     add_st "DIMMER|AUTO_OFF_DELAY"            "stringTableHbwAutoOffDelay"
@@ -149,7 +96,6 @@ do_install() {
     add_st "DIMMER|OUTPUT_VOLTAGE"            "stringTableHbwOutputVoltage"
     add_st "DIMMER|POWER_ON_STATE"            "stringTableHbwPowerOnState"
     add_st "DIMMER|PWM_RANGE"                 "stringTableHbwPwmRange"
-
     # BLIND
     add_st "BLIND|CHANGE_OVER_DELAY"          "stringTableHbwChangeOverDelay"
     add_st "BLIND|LOGGING"                    "stringTableHbwLogging"
@@ -157,7 +103,6 @@ do_install() {
     add_st "BLIND|REFERENCE_RUNNING_TIME_BOTTOM_TOP" "stringTableHbwRefRunTimeBottomTop"
     add_st "BLIND|REFERENCE_RUNNING_TIME_TOP_BOTTOM" "stringTableHbwRefRunTimeTopBottom"
     add_st "BLIND|REFERENCE_RUN_COUNTER"      "stringTableHbwRefRunCounter"
-
     # VALVE
     add_st "VALVE|INVERTED"                   "stringTableHbwInverted"
     add_st "VALVE|LIMIT_LOWER"                "stringTableHbwLimitLower"
@@ -166,7 +111,6 @@ do_install() {
     add_st "VALVE|LOGGING"                    "stringTableHbwLogging"
     add_st "VALVE|SWITCH_TIME"                "stringTableHbwSwitchTime"
     add_st "VALVE|VALVE_ERROR_POS"            "stringTableHbwValveErrorPos"
-
     # ANALOG_INPUT / ANALOGSENSOR
     add_st "ANALOG_INPUT|SEND_DELTA_VALUE"    "stringTableHbwSendDeltaValue"
     add_st "ANALOG_INPUT|SEND_MIN_INTERVAL"   "stringTableHbwSendMinInterval"
@@ -175,14 +119,12 @@ do_install() {
     add_st "ANALOGSENSOR|ENABLED"             "stringTableHbwEnabled"
     add_st "ANALOGSENSOR|NOTIFY"              "stringTableHbwNotify"
     add_st "ANALOGSENSOR|SAMPLE_INTERVAL"     "stringTableHbwSampleInterval"
-
     # COUNTER_INPUT
     add_st "COUNTER_INPUT|ENABLED"            "stringTableHbwEnabled"
     add_st "COUNTER_INPUT|INVERTED"           "stringTableHbwInverted"
     add_st "COUNTER_INPUT|SEND_DELTA_COUNT"   "stringTableHbwSendDeltaCount"
     add_st "COUNTER_INPUT|SEND_MIN_INTERVAL"  "stringTableHbwSendMinInterval"
     add_st "COUNTER_INPUT|SEND_MAX_INTERVAL"  "stringTableHbwSendMaxInterval"
-
     # WEATHER
     add_st "WEATHER|RX_TIMEOUT"              "stringTableHbwRxTimeout"
     add_st "WEATHER|SEND_DELTA_TEMP"         "stringTableHbwSendDeltaTemp"
@@ -191,7 +133,6 @@ do_install() {
     add_st "WEATHER|SENSOR_ID"               "stringTableHbwSensorId"
     add_st "WEATHER|STORM_THRESHOLD_LEVEL"   "stringTableHbwStormThreshold"
     add_st "WEATHER|STORM_TRIGGER_COUNT"     "stringTableHbwStormTriggerCount"
-
     # DELTA_T
     add_st "DELTA_T|CYCLE_TIME"              "stringTableHbwCycleTime"
     add_st "DELTA_T|DELTA_TEMP"              "stringTableHbwDeltaTemp"
@@ -210,7 +151,6 @@ do_install() {
     add_st "DELTA_T1|RECEIVE_MAX_INTERVAL"   "stringTableHbwReceiveMaxInterval"
     add_st "DELTA_T2|ERROR_RETRY"            "stringTableHbwErrorRetry"
     add_st "DELTA_T2|RECEIVE_MAX_INTERVAL"   "stringTableHbwReceiveMaxInterval"
-
     # PID
     add_st "PID|CYCLE_TIME"                  "stringTableHbwCycleTime"
     add_st "PID|DEFAULT_SET_POINT"           "stringTableHbwDefaultSetPoint"
@@ -218,7 +158,6 @@ do_install() {
     add_st "PID|INTEGRAL"                    "stringTableHbwIntegral"
     add_st "PID|POWERON_MODE"                "stringTableHbwPowerOnMode"
     add_st "PID|PROPORTIONAL"                "stringTableHbwProportional"
-
     # DISPLAY
     add_st "DISPLAY|AUTO_CYCLE"              "stringTableHbwAutoCycle"
     add_st "DISPLAY|CHARACTERS_PER_LINE"     "stringTableHbwCharsPerLine"
@@ -231,7 +170,6 @@ do_install() {
     add_st "DISPLAY_V_SWITCH|DISPLAY_TEXT"   "stringTableHbwDisplayText"
     add_st "DISPLAY_V_TEMP|DIGITS"           "stringTableHbwDigits"
     add_st "DISPLAY_V_TEMP|FACTOR"           "stringTableHbwFactor"
-
     # BUS POWER / MODULE BUS VOLTAGE
     add_st "BUS POWER|ALARM_MAX_POWER"       "stringTableHbwAlarmMaxPower"
     add_st "BUS POWER|ALARM_MAX_VOLTAGE"     "stringTableHbwAlarmMaxVoltage"
@@ -246,177 +184,173 @@ do_install() {
     add_st "MODULE BUS VOLTAGE|SEND_MAX_INTERVAL" "stringTableHbwSendMaxInterval"
     add_st "MODULE BUS VOLTAGE|UPDATE_INTERVAL"   "stringTableHbwUpdateInterval"
 
-    # Deutsch - extension.js UND stringtable.js
-    for F in "${STRINGTABLE_JS_DE}"; do
-        add_tr "${F}" "stringTableHbwSendDeltaTemp"        "Sendedifferenz Temperatur"
-        add_tr "${F}" "stringTableHbwSendDeltaValue"       "Sendedifferenz Wert"
-        add_tr "${F}" "stringTableHbwSendDeltaCount"       "Sendedifferenz Z%E4hler"
-        add_tr "${F}" "stringTableHbwSendMinInterval"      "Minimales Sendeintervall"
-        add_tr "${F}" "stringTableHbwSendMaxInterval"      "Maximales Sendeintervall"
-        add_tr "${F}" "stringTableHbwOffset"               "Offset"
-        add_tr "${F}" "stringTableHbwOnewireType"          "1-Wire Sensor Typ"
-        add_tr "${F}" "stringTableHbwTemperature"          "Temperatur"
-        add_tr "${F}" "stringTableHbwEventDelaytime"       "Ereignis Verz%F6gerungszeit"
-        add_tr "${F}" "stringTableHbwInputLocked"          "Eingang gesperrt"
-        add_tr "${F}" "stringTableHbwInverted"             "Invertiert"
-        add_tr "${F}" "stringTableHbwNotify"               "Benachrichtigung"
-        add_tr "${F}" "stringTableHbwTransmitTryMax"       "Max. Sendeversuche"
-        add_tr "${F}" "stringTableHbwInputType"            "Eingangstyp"
-        add_tr "${F}" "stringTableHbwLongPressTime"        "Langdruckzeit"
-        add_tr "${F}" "stringTableHbwPullup"               "Pull-Up Widerstand"
-        add_tr "${F}" "stringTableHbwRepeatLongPress"      "Langdruck wiederholen"
-        add_tr "${F}" "stringTableHbwSuppressNum"          "Anzahl unterd. Ereignisse"
-        add_tr "${F}" "stringTableHbwSuppressTime"         "Unterd%FCckungszeit"
-        add_tr "${F}" "stringTableHbwBuzzer"               "Summer"
-        add_tr "${F}" "stringTableHbwLogging"              "Logging"
-        add_tr "${F}" "stringTableHbwOutputBehaviour"      "Ausgangsverhalten"
-        add_tr "${F}" "stringTableHbwOutputLocked"         "Ausgang gesperrt"
-        add_tr "${F}" "stringTableHbwAutoBrightness"       "Automatische Helligkeit"
-        add_tr "${F}" "stringTableHbwAutoOffDelay"         "Autom. Ausschaltverzög."
-        add_tr "${F}" "stringTableHbwDimMaxLevel"          "Max. Dimmpegel"
-        add_tr "${F}" "stringTableHbwDimMinLevel"          "Min. Dimmpegel"
-        add_tr "${F}" "stringTableHbwMaxOnTime"            "Max. Einschaltdauer"
-        add_tr "${F}" "stringTableHbwMaxOutputRange"       "Max. Ausgangsbereich"
-        add_tr "${F}" "stringTableHbwMaxTemp"              "Maximaltemperatur"
-        add_tr "${F}" "stringTableHbwOnTime"               "Einschaltdauer"
-        add_tr "${F}" "stringTableHbwOutputVoltage"        "Ausgangsspannung"
-        add_tr "${F}" "stringTableHbwPowerOnState"         "Einschaltzustand"
-        add_tr "${F}" "stringTableHbwPwmRange"             "PWM-Bereich"
-        add_tr "${F}" "stringTableHbwChangeOverDelay"      "Umschaltverzögerung"
-        add_tr "${F}" "stringTableHbwMotorStartupDelay"    "Motor-Anlaufverzögerung"
-        add_tr "${F}" "stringTableHbwRefRunTimeBottomTop"  "Referenzzeit unten-oben"
-        add_tr "${F}" "stringTableHbwRefRunTimeTopBottom"  "Referenzzeit oben-unten"
-        add_tr "${F}" "stringTableHbwRefRunCounter"        "Referenzfahrtz%E4hler"
-        add_tr "${F}" "stringTableHbwLimitLower"           "Untere Begrenzung"
-        add_tr "${F}" "stringTableHbwLimitUpper"           "Obere Begrenzung"
-        add_tr "${F}" "stringTableHbwLocked"               "Gesperrt"
-        add_tr "${F}" "stringTableHbwSwitchTime"           "Schaltzeit"
-        add_tr "${F}" "stringTableHbwValveErrorPos"        "Ventilpos. bei Fehler"
-        add_tr "${F}" "stringTableHbwUpdateInterval"       "Aktualisierungsintervall"
-        add_tr "${F}" "stringTableHbwEnabled"              "Aktiviert"
-        add_tr "${F}" "stringTableHbwSampleInterval"       "Messintervall"
-        add_tr "${F}" "stringTableHbwSampleRate"           "Messrate"
-        add_tr "${F}" "stringTableHbwRxTimeout"            "Empfangs-Timeout"
-        add_tr "${F}" "stringTableHbwSensorId"             "Sensor ID"
-        add_tr "${F}" "stringTableHbwStormThreshold"       "Sturmschwellwert"
-        add_tr "${F}" "stringTableHbwStormTriggerCount"    "Sturmausl%F6seanzahl"
-        add_tr "${F}" "stringTableHbwCycleTime"            "Zykluszeit"
-        add_tr "${F}" "stringTableHbwDeltaTemp"            "Temperaturdifferenz"
-        add_tr "${F}" "stringTableHbwErrorState"           "Fehlerzustand"
-        add_tr "${F}" "stringTableHbwHysteresis"           "Hysterese"
-        add_tr "${F}" "stringTableHbwHysteresisForDeltaT"  "Hysterese f. Temp.diff."
-        add_tr "${F}" "stringTableHbwHysteresisForT1Max"   "Hysterese f. T1 Max"
-        add_tr "${F}" "stringTableHbwHysteresisForT2Min"   "Hysterese f. T2 Min"
-        add_tr "${F}" "stringTableHbwPulsOnCycle"          "Puls Ein-Zyklus"
-        add_tr "${F}" "stringTableHbwT1Max"                "T1 Maximum"
-        add_tr "${F}" "stringTableHbwT2Min"                "T2 Minimum"
-        add_tr "${F}" "stringTableHbwErrorRetry"           "Fehlerwiederholung"
-        add_tr "${F}" "stringTableHbwReceiveMaxInterval"   "Max. Empfangsintervall"
-        add_tr "${F}" "stringTableHbwDefaultSetPoint"      "Standard-Sollwert"
-        add_tr "${F}" "stringTableHbwDerivative"           "Differentialanteil (D)"
-        add_tr "${F}" "stringTableHbwIntegral"             "Integralanteil (I)"
-        add_tr "${F}" "stringTableHbwPowerOnMode"          "Einschaltmodus"
-        add_tr "${F}" "stringTableHbwProportional"         "Proportionalanteil (P)"
-        add_tr "${F}" "stringTableHbwAutoCycle"            "Automatischer Zyklus"
-        add_tr "${F}" "stringTableHbwCharsPerLine"         "Zeichen pro Zeile"
-        add_tr "${F}" "stringTableHbwDisplayLines"         "Anzahl Zeilen"
-        add_tr "${F}" "stringTableHbwInvertDisplay"        "Display invertieren"
-        add_tr "${F}" "stringTableHbwRefreshRate"          "Aktualisierungsrate"
-        add_tr "${F}" "stringTableHbwDefaultText"          "Standardtext"
-        add_tr "${F}" "stringTableHbwDisplayText"          "Anzeigetext"
-        add_tr "${F}" "stringTableHbwDigits"               "Dezimalstellen"
-        add_tr "${F}" "stringTableHbwFactor"               "Faktor"
-        add_tr "${F}" "stringTableHbwAlarmMaxPower"        "Alarm Max. Leistung"
-        add_tr "${F}" "stringTableHbwAlarmMaxVoltage"      "Alarm Max. Spannung"
-        add_tr "${F}" "stringTableHbwAlarmMinVoltage"      "Alarm Min. Spannung"
-        add_tr "${F}" "stringTableHbwKeyEventAlarm"        "Tasten-Ereignis Alarm"
-    done
+    # Deutsch
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSendDeltaTemp"        "Sendedifferenz Temperatur"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSendDeltaValue"       "Sendedifferenz Wert"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSendDeltaCount"       "Sendedifferenz Z%E4hler"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSendMinInterval"      "Minimales Sendeintervall"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSendMaxInterval"      "Maximales Sendeintervall"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOffset"               "Offset"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOnewireType"          "1-Wire Sensor Typ"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwTemperature"          "Temperatur"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwEventDelaytime"       "Ereignis Verz%F6gerungszeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwInputLocked"          "Eingang gesperrt"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwInverted"             "Invertiert"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwNotify"               "Benachrichtigung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwTransmitTryMax"       "Max. Sendeversuche"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwInputType"            "Eingangstyp"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwLongPressTime"        "Langdruckzeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwPullup"               "Pull-Up Widerstand"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRepeatLongPress"      "Langdruck wiederholen"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSuppressNum"          "Anzahl unterd. Ereignisse"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSuppressTime"         "Unterd%FCckungszeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwBuzzer"               "Summer"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwLogging"              "Logging"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOutputBehaviour"      "Ausgangsverhalten"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOutputLocked"         "Ausgang gesperrt"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAutoBrightness"       "Automatische Helligkeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAutoOffDelay"         "Autom. Ausschaltverzög."
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDimMaxLevel"          "Max. Dimmpegel"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDimMinLevel"          "Min. Dimmpegel"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwMaxOnTime"            "Max. Einschaltdauer"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwMaxOutputRange"       "Max. Ausgangsbereich"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwMaxTemp"              "Maximaltemperatur"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOnTime"               "Einschaltdauer"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOutputVoltage"        "Ausgangsspannung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwPowerOnState"         "Einschaltzustand"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwPwmRange"             "PWM-Bereich"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwChangeOverDelay"      "Umschaltverzögerung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwMotorStartupDelay"    "Motor-Anlaufverzögerung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRefRunTimeBottomTop"  "Referenzzeit unten-oben"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRefRunTimeTopBottom"  "Referenzzeit oben-unten"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRefRunCounter"        "Referenzfahrtz%E4hler"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwLimitLower"           "Untere Begrenzung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwLimitUpper"           "Obere Begrenzung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwLocked"               "Gesperrt"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSwitchTime"           "Schaltzeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwValveErrorPos"        "Ventilpos. bei Fehler"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwUpdateInterval"       "Aktualisierungsintervall"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwEnabled"              "Aktiviert"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSampleInterval"       "Messintervall"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSampleRate"           "Messrate"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRxTimeout"            "Empfangs-Timeout"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwSensorId"             "Sensor ID"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwStormThreshold"       "Sturmschwellwert"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwStormTriggerCount"    "Sturmausl%F6seanzahl"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwCycleTime"            "Zykluszeit"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDeltaTemp"            "Temperaturdifferenz"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwErrorState"           "Fehlerzustand"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwHysteresis"           "Hysterese"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwHysteresisForDeltaT"  "Hysterese f. Temp.diff."
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwHysteresisForT1Max"   "Hysterese f. T1 Max"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwHysteresisForT2Min"   "Hysterese f. T2 Min"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwPulsOnCycle"          "Puls Ein-Zyklus"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwT1Max"                "T1 Maximum"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwT2Min"                "T2 Minimum"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwErrorRetry"           "Fehlerwiederholung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwReceiveMaxInterval"   "Max. Empfangsintervall"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDefaultSetPoint"      "Standard-Sollwert"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDerivative"           "Differentialanteil (D)"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwIntegral"             "Integralanteil (I)"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwPowerOnMode"          "Einschaltmodus"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwProportional"         "Proportionalanteil (P)"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAutoCycle"            "Automatischer Zyklus"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwCharsPerLine"         "Zeichen pro Zeile"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDisplayLines"         "Anzahl Zeilen"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwInvertDisplay"        "Display invertieren"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRefreshRate"          "Aktualisierungsrate"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDefaultText"          "Standardtext"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDisplayText"          "Anzeigetext"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwDigits"               "Dezimalstellen"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwFactor"               "Faktor"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAlarmMaxPower"        "Alarm Max. Leistung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAlarmMaxVoltage"      "Alarm Max. Spannung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAlarmMinVoltage"      "Alarm Min. Spannung"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwKeyEventAlarm"        "Tasten-Ereignis Alarm"
 
-    # Englisch - extension.js UND stringtable.js
-    for F in "${STRINGTABLE_JS_EN}"; do
-        add_tr "${F}" "stringTableHbwSendDeltaTemp"        "Send delta temperature"
-        add_tr "${F}" "stringTableHbwSendDeltaValue"       "Send delta value"
-        add_tr "${F}" "stringTableHbwSendDeltaCount"       "Send delta count"
-        add_tr "${F}" "stringTableHbwSendMinInterval"      "Min. send interval"
-        add_tr "${F}" "stringTableHbwSendMaxInterval"      "Max. send interval"
-        add_tr "${F}" "stringTableHbwOffset"               "Offset"
-        add_tr "${F}" "stringTableHbwOnewireType"          "1-Wire sensor type"
-        add_tr "${F}" "stringTableHbwTemperature"          "Temperature"
-        add_tr "${F}" "stringTableHbwEventDelaytime"       "Event delay time"
-        add_tr "${F}" "stringTableHbwInputLocked"          "Input locked"
-        add_tr "${F}" "stringTableHbwInverted"             "Inverted"
-        add_tr "${F}" "stringTableHbwNotify"               "Notify"
-        add_tr "${F}" "stringTableHbwTransmitTryMax"       "Max. transmit tries"
-        add_tr "${F}" "stringTableHbwInputType"            "Input type"
-        add_tr "${F}" "stringTableHbwLongPressTime"        "Long press time"
-        add_tr "${F}" "stringTableHbwPullup"               "Pull-up resistor"
-        add_tr "${F}" "stringTableHbwRepeatLongPress"      "Repeat long press"
-        add_tr "${F}" "stringTableHbwSuppressNum"          "Suppress event count"
-        add_tr "${F}" "stringTableHbwSuppressTime"         "Suppress time"
-        add_tr "${F}" "stringTableHbwBuzzer"               "Buzzer"
-        add_tr "${F}" "stringTableHbwLogging"              "Logging"
-        add_tr "${F}" "stringTableHbwOutputBehaviour"      "Output behaviour"
-        add_tr "${F}" "stringTableHbwOutputLocked"         "Output locked"
-        add_tr "${F}" "stringTableHbwAutoBrightness"       "Auto brightness"
-        add_tr "${F}" "stringTableHbwAutoOffDelay"         "Auto off delay"
-        add_tr "${F}" "stringTableHbwDimMaxLevel"          "Max. dim level"
-        add_tr "${F}" "stringTableHbwDimMinLevel"          "Min. dim level"
-        add_tr "${F}" "stringTableHbwMaxOnTime"            "Max. on time"
-        add_tr "${F}" "stringTableHbwMaxOutputRange"       "Max. output range"
-        add_tr "${F}" "stringTableHbwMaxTemp"              "Max. temperature"
-        add_tr "${F}" "stringTableHbwOnTime"               "On time"
-        add_tr "${F}" "stringTableHbwOutputVoltage"        "Output voltage"
-        add_tr "${F}" "stringTableHbwPowerOnState"         "Power on state"
-        add_tr "${F}" "stringTableHbwPwmRange"             "PWM range"
-        add_tr "${F}" "stringTableHbwChangeOverDelay"      "Change over delay"
-        add_tr "${F}" "stringTableHbwMotorStartupDelay"    "Motor startup delay"
-        add_tr "${F}" "stringTableHbwRefRunTimeBottomTop"  "Ref. run time bottom-top"
-        add_tr "${F}" "stringTableHbwRefRunTimeTopBottom"  "Ref. run time top-bottom"
-        add_tr "${F}" "stringTableHbwRefRunCounter"        "Reference run counter"
-        add_tr "${F}" "stringTableHbwLimitLower"           "Lower limit"
-        add_tr "${F}" "stringTableHbwLimitUpper"           "Upper limit"
-        add_tr "${F}" "stringTableHbwLocked"               "Locked"
-        add_tr "${F}" "stringTableHbwSwitchTime"           "Switch time"
-        add_tr "${F}" "stringTableHbwValveErrorPos"        "Valve error position"
-        add_tr "${F}" "stringTableHbwUpdateInterval"       "Update interval"
-        add_tr "${F}" "stringTableHbwEnabled"              "Enabled"
-        add_tr "${F}" "stringTableHbwSampleInterval"       "Sample interval"
-        add_tr "${F}" "stringTableHbwSampleRate"           "Sample rate"
-        add_tr "${F}" "stringTableHbwRxTimeout"            "RX timeout"
-        add_tr "${F}" "stringTableHbwSensorId"             "Sensor ID"
-        add_tr "${F}" "stringTableHbwStormThreshold"       "Storm threshold"
-        add_tr "${F}" "stringTableHbwStormTriggerCount"    "Storm trigger count"
-        add_tr "${F}" "stringTableHbwCycleTime"            "Cycle time"
-        add_tr "${F}" "stringTableHbwDeltaTemp"            "Temperature delta"
-        add_tr "${F}" "stringTableHbwErrorState"           "Error state"
-        add_tr "${F}" "stringTableHbwHysteresis"           "Hysteresis"
-        add_tr "${F}" "stringTableHbwHysteresisForDeltaT"  "Hysteresis for delta T"
-        add_tr "${F}" "stringTableHbwHysteresisForT1Max"   "Hysteresis for T1 max"
-        add_tr "${F}" "stringTableHbwHysteresisForT2Min"   "Hysteresis for T2 min"
-        add_tr "${F}" "stringTableHbwPulsOnCycle"          "Pulse on cycle"
-        add_tr "${F}" "stringTableHbwT1Max"                "T1 maximum"
-        add_tr "${F}" "stringTableHbwT2Min"                "T2 minimum"
-        add_tr "${F}" "stringTableHbwErrorRetry"           "Error retry"
-        add_tr "${F}" "stringTableHbwReceiveMaxInterval"   "Max. receive interval"
-        add_tr "${F}" "stringTableHbwDefaultSetPoint"      "Default setpoint"
-        add_tr "${F}" "stringTableHbwDerivative"           "Derivative (D)"
-        add_tr "${F}" "stringTableHbwIntegral"             "Integral (I)"
-        add_tr "${F}" "stringTableHbwPowerOnMode"          "Power on mode"
-        add_tr "${F}" "stringTableHbwProportional"         "Proportional (P)"
-        add_tr "${F}" "stringTableHbwAutoCycle"            "Auto cycle"
-        add_tr "${F}" "stringTableHbwCharsPerLine"         "Characters per line"
-        add_tr "${F}" "stringTableHbwDisplayLines"         "Display lines"
-        add_tr "${F}" "stringTableHbwInvertDisplay"        "Invert display"
-        add_tr "${F}" "stringTableHbwRefreshRate"          "Refresh rate"
-        add_tr "${F}" "stringTableHbwDefaultText"          "Default text"
-        add_tr "${F}" "stringTableHbwDisplayText"          "Display text"
-        add_tr "${F}" "stringTableHbwDigits"               "Digits"
-        add_tr "${F}" "stringTableHbwFactor"               "Factor"
-        add_tr "${F}" "stringTableHbwAlarmMaxPower"        "Alarm max. power"
-        add_tr "${F}" "stringTableHbwAlarmMaxVoltage"      "Alarm max. voltage"
-        add_tr "${F}" "stringTableHbwAlarmMinVoltage"      "Alarm min. voltage"
-        add_tr "${F}" "stringTableHbwKeyEventAlarm"        "Key event alarm"
-    done
+    # Englisch
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendDeltaTemp"        "Send delta temperature"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendDeltaValue"       "Send delta value"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendDeltaCount"       "Send delta count"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendMinInterval"      "Min. send interval"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendMaxInterval"      "Max. send interval"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOffset"               "Offset"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOnewireType"          "1-Wire sensor type"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwTemperature"          "Temperature"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwEventDelaytime"       "Event delay time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwInputLocked"          "Input locked"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwInverted"             "Inverted"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwNotify"               "Notify"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwTransmitTryMax"       "Max. transmit tries"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwInputType"            "Input type"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwLongPressTime"        "Long press time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwPullup"               "Pull-up resistor"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRepeatLongPress"      "Repeat long press"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSuppressNum"          "Suppress event count"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSuppressTime"         "Suppress time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwBuzzer"               "Buzzer"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwLogging"              "Logging"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOutputBehaviour"      "Output behaviour"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOutputLocked"         "Output locked"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAutoBrightness"       "Auto brightness"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAutoOffDelay"         "Auto off delay"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDimMaxLevel"          "Max. dim level"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDimMinLevel"          "Min. dim level"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwMaxOnTime"            "Max. on time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwMaxOutputRange"       "Max. output range"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwMaxTemp"              "Max. temperature"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOnTime"               "On time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOutputVoltage"        "Output voltage"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwPowerOnState"         "Power on state"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwPwmRange"             "PWM range"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwChangeOverDelay"      "Change over delay"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwMotorStartupDelay"    "Motor startup delay"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRefRunTimeBottomTop"  "Ref. run time bottom-top"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRefRunTimeTopBottom"  "Ref. run time top-bottom"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRefRunCounter"        "Reference run counter"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwLimitLower"           "Lower limit"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwLimitUpper"           "Upper limit"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwLocked"               "Locked"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSwitchTime"           "Switch time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwValveErrorPos"        "Valve error position"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwUpdateInterval"       "Update interval"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwEnabled"              "Enabled"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSampleInterval"       "Sample interval"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSampleRate"           "Sample rate"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRxTimeout"            "RX timeout"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSensorId"             "Sensor ID"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwStormThreshold"       "Storm threshold"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwStormTriggerCount"    "Storm trigger count"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwCycleTime"            "Cycle time"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDeltaTemp"            "Temperature delta"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwErrorState"           "Error state"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwHysteresis"           "Hysteresis"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwHysteresisForDeltaT"  "Hysteresis for delta T"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwHysteresisForT1Max"   "Hysteresis for T1 max"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwHysteresisForT2Min"   "Hysteresis for T2 min"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwPulsOnCycle"          "Pulse on cycle"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwT1Max"                "T1 maximum"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwT2Min"                "T2 minimum"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwErrorRetry"           "Error retry"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwReceiveMaxInterval"   "Max. receive interval"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDefaultSetPoint"      "Default setpoint"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDerivative"           "Derivative (D)"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwIntegral"             "Integral (I)"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwPowerOnMode"          "Power on mode"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwProportional"         "Proportional (P)"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAutoCycle"            "Auto cycle"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwCharsPerLine"         "Characters per line"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDisplayLines"         "Display lines"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwInvertDisplay"        "Invert display"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRefreshRate"          "Refresh rate"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDefaultText"          "Default text"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDisplayText"          "Display text"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwDigits"               "Digits"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwFactor"               "Factor"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMaxPower"        "Alarm max. power"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMaxVoltage"      "Alarm max. voltage"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMinVoltage"      "Alarm min. voltage"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwKeyEventAlarm"        "Key event alarm"
 
     echo "=== inst_strings.sh: install done ==="
 }
@@ -506,9 +440,8 @@ do_uninstall() {
         stringTableHbwDigits stringTableHbwFactor stringTableHbwAlarmMaxPower \
         stringTableHbwAlarmMaxVoltage stringTableHbwAlarmMinVoltage stringTableHbwKeyEventAlarm
     do
-        for F in "${STRINGTABLE_JS_DE}" "${STRINGTABLE_JS_EN}"; do
-            del_tr "${F}" "${STKEY}"
-        done
+        del_tr "$STRINGTABLE_JS_DE" "${STKEY}"
+        del_tr "$STRINGTABLE_JS_EN" "${STKEY}"
     done
 
     echo "=== inst_strings.sh: uninstall done ==="
