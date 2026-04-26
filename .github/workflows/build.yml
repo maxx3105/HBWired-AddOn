@@ -25,6 +25,11 @@ jobs:
           chmod +x staging/update_script
           chmod +x staging/rc.d/hbwired
           chmod +x staging/addon/installHBWired
+          chmod +x staging/addon/inst_strings.sh
+          chmod +x staging/ccu1/update_addon
+          chmod +x staging/ccu2/update_addon
+          chmod +x staging/ccu3/update_addon
+          chmod +x staging/ccurm/update_addon
           tar czf hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz \
             --owner=root --group=root \
             -C staging \
