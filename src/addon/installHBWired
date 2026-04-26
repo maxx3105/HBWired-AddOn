@@ -136,10 +136,13 @@ add_dev() {
   if ! grep -q "$1" "$file"; then
     DEV_NAME="$1"
     DEV_DESC="$2"
-    export DEV_NAME DEV_DESC
-    awk 'BEGIN { n=ENVIRON["DEV_NAME"]; d=ENVIRON["DEV_DESC"] }
+    DEV_IMG="${3:-}"
+    DEV_THUMB="${4:-}"
+    export DEV_NAME DEV_DESC DEV_IMG DEV_THUMB
+    awk 'BEGIN { n=ENVIRON["DEV_NAME"]; d=ENVIRON["DEV_DESC"]; i=ENVIRON["DEV_IMG"]; t=ENVIRON["DEV_THUMB"] }
          /DEV_LIST \{/        { sub(/DEV_LIST \{/, "DEV_LIST {" n " ") }
          /DEV_DESCRIPTION \{/ { sub(/DEV_DESCRIPTION \{/, "DEV_DESCRIPTION {" n " {" d "} ") }
+         /DEV_PATHS \{/ && i != "" { sub(/DEV_PATHS \{/, "DEV_PATHS {" n " {{50 \/config\/img\/devices\/50\/" t "} {250 \/config\/img\/devices\/250\/" i "}} ") }
          { print }' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
     dev_count=$((dev_count + 1))
     echo "  [OK] $1"
@@ -150,7 +153,7 @@ add_dev "HBW-LC-SW8-DR" "HBWired 8ch Switch"
 add_dev "HBW-LC-DIM4-DR" "HBWired 4ch Dimmer"
 add_dev "HBW-IO-12" "HBWired 12ch I/O"
 add_dev "HBW-SENS-SC8" "HBWired 8ch Sensor"
-add_dev "HBW-1W-T10" "HBWired 1Wire Temp"
+add_dev "HBW-1W-T10" "HBWired 1Wire Temp" "HBW-1W-T10.png" "HBW-1W-T10_thumb.png"
 add_dev "HBW-LC-BL-4" "HBWired 4ch Blind"
 add_dev "HBW-LC-SW-8" "HBWired 8ch Switch v2"
 add_dev "HBW-SEN-EP" "HBWired Energy"
