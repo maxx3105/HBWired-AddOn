@@ -49,4 +49,6 @@ ln -sf ${ADDON_DIR} ${WWW_DIR}/addon
 
 sync
 
+reboot
+
 exit 0
