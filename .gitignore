@@ -1,0 +1,4 @@
+*.tgz
+*.tar.gz
+*.bak
+.DS_Store
