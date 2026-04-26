@@ -23,6 +23,7 @@ jobs:
           cd src
           tar czf ../hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz \
             --owner=root --group=root \
+            --transform 's|^|./|' \
             addon/ ccu1/ ccu2/ ccu3/ ccurm/ www/ rc.d/ update_script
 
       - name: Create Release (tag push)
