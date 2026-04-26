@@ -1,7 +1,7 @@
-# HBWired-CCU-Addon
+# HBWired-AddOn
 
-[![Build Addon](https://github.com/maxx3105/HBWired-CCU-Addon/actions/workflows/build.yml/badge.svg)](https://github.com/maxx3105/HBWired-CCU-Addon/actions/workflows/build.yml)
-[![Releases](https://img.shields.io/github/v/release/maxx3105/HBWired-CCU-Addon)](https://github.com/maxx3105/HBWired-CCU-Addon/releases/latest)
+[![Build Addon](https://github.com/maxx3105/HBWired-AddOn/actions/workflows/build.yml/badge.svg)](https://github.com/maxx3105/HBWired-AddOn/actions/workflows/build.yml)
+[![Releases](https://img.shields.io/github/v/release/maxx3105/HBWired-AddOn)](https://github.com/maxx3105/HBWired-AddOn/releases/latest)
 
 Homematic/OpenCCU AddOn für HBWired-Geräte (HomeBrew Wired, basierend auf der [HBWired-Library](https://github.com/thorsten-pferdekaemper/HBWired) von Thorsten Pferdekaemper).
 
@@ -44,7 +44,7 @@ Homematic/OpenCCU AddOn für HBWired-Geräte (HomeBrew Wired, basierend auf der 
 
 ### Installation
 
-1. Aktuelles Release-tgz von der [Releases-Seite](https://github.com/maxx3105/HBWired-CCU-Addon/releases/latest) herunterladen
+1. Aktuelles Release-tgz von der [Releases-Seite](https://github.com/maxx3105/HBWired-AddOn/releases/latest) herunterladen
 2. CCU WebUI öffnen → **Einstellungen** → **Systemsteuerung** → **Zusatzsoftware**
 3. Heruntergeladenes `hbwired-ccu-addon_x.x.x.tgz` hochladen
 4. Die CCU startet automatisch neu — danach ist das Addon aktiv
@@ -66,7 +66,7 @@ CCU WebUI → **Einstellungen** → **Systemsteuerung** → **Zusatzsoftware** �
 ### Repository-Struktur
 
 ```
-HBWired-CCU-Addon/
+HBWired-AddOn/
 ├── .github/
 │   └── workflows/
 │       └── build.yml          # GitHub Actions: automatischer Build & Release
