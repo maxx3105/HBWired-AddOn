@@ -1,0 +1,44 @@
+name: Build Addon
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: echo "VERSION=$(cat src/addon/VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Build tgz
+        run: |
+          cd src
+          tar czf ../hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz \
+            --owner=root --group=root \
+            addon/ ccu1/ ccu2/ ccu3/ ccurm/ www/ rc.d/ update_script
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "HBWired CCU Addon v${{ steps.version.outputs.VERSION }}"
+          tag_name: ${{ github.ref_name }}
+          files: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifact (non-tag builds)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}
+          path: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
