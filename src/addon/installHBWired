@@ -134,8 +134,13 @@ dev_count=0
 
 add_dev() {
   if ! grep -q "$1" "$file"; then
-    sed -i -e "s/DEV_LIST {/DEV_LIST {$1 /" $file
-    sed -i -e "s/DEV_DESCRIPTION {/DEV_DESCRIPTION {$1 {$2} /" $file
+    DEV_NAME="$1"
+    DEV_DESC="$2"
+    export DEV_NAME DEV_DESC
+    awk 'BEGIN { n=ENVIRON["DEV_NAME"]; d=ENVIRON["DEV_DESC"] }
+         /DEV_LIST \{/        { sub(/DEV_LIST \{/, "DEV_LIST {" n " ") }
+         /DEV_DESCRIPTION \{/ { sub(/DEV_DESCRIPTION \{/, "DEV_DESCRIPTION {" n " {" d "} ") }
+         { print }' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
     dev_count=$((dev_count + 1))
     echo "  [OK] $1"
   fi
