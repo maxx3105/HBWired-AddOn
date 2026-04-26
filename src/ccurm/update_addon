@@ -6,16 +6,16 @@ WWW_DIR=$CONFIG_DIR/addons/www/$ADDON_NAME
 RC_DIR=$CONFIG_DIR/rc.d
 
 if [ "$1" = "" ]; then
-  echo "CCU-Addon-Update für HBWired"
+  echo "CCU-Addon-Update fuer HBWired"
   echo "Usage: $0 <addon-name>"
   exit 1
 fi
 
-# WebUI Button im Hauptmenü aktualisieren
+# WebUI Button im Hauptmenue aktualisieren
 if [ -f $CONFIG_DIR/hm_addons.cfg ]; then
-  line=$(cat $CONFIG_DIR/hm_addons.cfg | grep $1 | wc -l)
-  if [ $line -eq 0 ]; then
-    echo "Füge $1 zu hm_addons.cfg hinzu"
+  line=$(grep -c "$1" $CONFIG_DIR/hm_addons.cfg 2>/dev/null || echo 0)
+  if [ "$line" = "0" ]; then
+    echo "Fuge $1 zu hm_addons.cfg hinzu"
     cp -a $CONFIG_DIR/hm_addons.cfg $CONFIG_DIR/hm_addons.cfg.bak
     cat $ADDON_DIR/hm_${1}-addon.cfg >> $CONFIG_DIR/hm_addons.cfg
   fi
