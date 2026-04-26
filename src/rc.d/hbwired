@@ -47,17 +47,8 @@ uninstall()
   rm -f /www/config/img/devices/250/HBW-*.png
   rm -f /www/config/img/devices/50/HBW-*_thumb.png
 
-  # Remove translations from stringtable_de.txt
-  STRINGTABLE="/www/config/stringtable_de.txt"
-  if [ -f "$STRINGTABLE" ]; then
-    sed -i '/^# HBWired AddOn/,/^$/d' "$STRINGTABLE"
-  fi
-
-  # Remove translations from translate.lang.stringtable.js
-  TRANSLATE_JS="/www/webui/js/lang/de/translate.lang.stringtable.js"
-  if [ -f "$TRANSLATE_JS" ]; then
-    sed -i '/\/\/ HBWired AddOn/,/\/\/ END HBWired AddOn/d' "$TRANSLATE_JS"
-  fi
+  # Remove translations
+  sh ${ADDON_DIR}/inst_strings.sh uninstall 2>/dev/null
 
   mount -o remount,ro / 2>/dev/null
 
