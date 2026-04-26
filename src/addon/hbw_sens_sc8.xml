@@ -1,0 +1,102 @@
+<device version="01" eep_size="2048">
+  <supported_types>
+    <type name="HBWired 8-channel sensor/switch contact" id="HBW-SENS-SC8" priority="2">
+      <parameter index="0" size="1" const_value="0x73"/>
+      <parameter index="1" size="1" const_value="0"/>
+      <parameter index="2" size="2" const_value="0x0100" cond_op="GE"/>
+    </type>
+  </supported_types>
+  
+  <paramset type="MASTER" id="HBW-SENS-SC8_dev_master">
+    <parameter id="HW_REV" hidden="true">
+      <logical type="integer"/>
+      <physical size="1" type="integer" interface="eeprom">
+        <address index="0x0000"/>
+      </physical>
+    </parameter>
+    
+    <parameter id="LOGGING_TIME">
+      <logical type="float" min="0.1" max="25.5" default="2.0" unit="s"/>
+      <physical type="integer" size="1.0" interface="eeprom">
+        <address index="0x0001"/>
+      </physical>
+      <conversion type="float_integer_scale" factor="10" offset="0.0"/>
+    </parameter>
+    
+    <parameter id="CENTRAL_ADDRESS" hidden="true">
+      <logical type="integer"/>
+      <physical type="integer" size="4" interface="eeprom">
+        <address index="0x0002"/>
+      </physical>
+    </parameter>
+    <enforce id="CENTRAL_ADDRESS" value="1"/>
+    
+    <parameter id="OWN_ADDRESS">
+      <logical type="integer" default="1730000000" max="1739999999" min="1730000000"/>
+      <physical size="4" type="integer" interface="eeprom">
+        <address index="0x0006"/>
+      </physical>
+    </parameter>
+  </paramset>
+  
+  <channels>
+    <channel index="0" type="MAINTENANCE" ui_flags="internal" class="maintenance" count="1">
+      <paramset type="MASTER" id="maint_ch_master"/>
+      <paramset type="VALUES" id="maint_ch_values">
+        <parameter id="UNREACH" operations="read,event" ui_flags="service">
+          <logical type="boolean"/>
+          <physical type="integer" interface="internal" value_id="UNREACH"/>
+        </parameter>
+        <parameter id="STICKY_UNREACH" operations="read,write,event" ui_flags="service,sticky">
+          <logical type="boolean"/>
+          <physical type="integer" interface="internal" value_id="STICKY_UNREACH"/>
+        </parameter>
+        <parameter id="CONFIG_PENDING" operations="read,event" ui_flags="service">
+          <logical type="boolean"/>
+          <physical type="integer" interface="internal" value_id="CONFIG_PENDING"/>
+        </parameter>
+      </paramset>
+    </channel>
+    
+    <channel index="1:8" type="SENSOR" count="8">
+      <paramset type="MASTER" id="sensor_ch_master">
+        <parameter id="EVENT_DELAYTIME">
+          <logical type="float" min="0.0" max="7620.0" default="0.0" unit="s"/>
+          <physical type="integer" interface="eeprom" size="1">
+            <address index="+0"/>
+          </physical>
+          <conversion type="float_configtime"/>
+        </parameter>
+        
+        <parameter id="TRANSMIT_TRY_MAX">
+          <logical type="integer" min="1" max="10" default="6"/>
+          <physical type="integer" interface="eeprom" size="1">
+            <address index="+1"/>
+          </physical>
+        </parameter>
+      </paramset>
+      
+      <paramset type="VALUES" id="sensor_ch_values">
+        <parameter id="STATE" operations="read,event">
+          <logical type="boolean"/>
+          <physical type="integer" interface="command" value_id="STATE">
+            <get request="LEVEL_GET" response="STATE"/>
+            <event frame="STATE_CHANGED"/>
+          </physical>
+        </parameter>
+      </paramset>
+      
+      <paramset type="LINK" id="sensor_ch_link"/>
+    </channel>
+  </channels>
+  
+  <frames>
+    <frame id="LEVEL_GET" direction="to_device" type="0x53" channel_field="10"/>
+    <frame id="STATE" direction="from_device" type="0x10" channel_field="10">
+      <parameter type="integer" index="11.0" size="1.0" param="STATE"/>
+    </frame>
+    <frame id="STATE_CHANGED" direction="from_device" type="0x41" event="true" channel_field="10">
+      <parameter type="integer" index="11.0" size="1.0" param="STATE"/>
+    </frame>
+  </frames>
+</device>

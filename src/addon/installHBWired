@@ -1,0 +1,180 @@
+#!/bin/sh
+#
+# HBWired Community Addon - Installation Script  
+# Version 1.0.2
+#
+
+echo "=========================================="
+echo "HBWired Community Addon - Installation"
+echo "=========================================="
+
+mount -o remount,rw /
+
+# ===================================================================
+# SCHRITT 1: XML-Gerätebeschreibungen kopieren
+# ===================================================================
+echo ""
+echo "Schritt 1: Kopiere XML-Gerätebeschreibungen..."
+
+# Zähler
+count=0
+
+# Alle XML-Dateien kopieren
+for xml in *.xml; do
+  if [ -f "$xml" ]; then
+    cp "$xml" /firmware/hs485types/
+    chmod 755 "/firmware/hs485types/$xml"
+    count=$((count + 1))
+    echo "  [OK] $xml"
+  fi
+done
+
+echo "  [INFO] $count XML-Dateien installiert"
+
+# ===================================================================
+# SCHRITT 2: Gerätebilder kopieren
+# ===================================================================
+echo ""
+echo "Schritt 2: Kopiere Gerätebilder..."
+
+pic_count=0
+
+# Große Bilder (250px)
+for png in *.png; do
+  if [ -f "$png" ] && [ "$png" != "*_thumb.png" ]; then
+    if ! echo "$png" | grep -q "_thumb"; then
+      cp "$png" /www/config/img/devices/250/
+      chmod 755 "/www/config/img/devices/250/$png"
+      pic_count=$((pic_count + 1))
+      echo "  [OK] $png"
+    fi
+  fi
+done
+
+# Thumbnails (50px)
+for png in *_thumb.png; do
+  if [ -f "$png" ]; then
+    cp "$png" /www/config/img/devices/50/
+    chmod 755 "/www/config/img/devices/50/$png"
+    pic_count=$((pic_count + 1))
+    echo "  [OK] $png"
+  fi
+done
+
+echo "  [INFO] $pic_count Bilder installiert"
+
+# ===================================================================
+# SCHRITT 3: Firmware-Map (fwmap) anpassen
+# ===================================================================
+echo ""
+echo "Schritt 3: Passe Firmware-Map an..."
+
+file="/firmware/fwmap"
+
+# Backup erstellen
+if [ ! -f "$file.backup" ]; then
+  echo "  Erstelle Backup: $file.backup"
+  cp $file $file.backup
+else
+  echo "  Backup existiert bereits: $file.backup"
+fi
+
+# Alte HBWired-Einträge entfernen
+if grep -q "HBWired Community" "$file"; then
+  echo "  Entferne alte HBWired-Einträge..."
+  sed -i '/HBWired Community/d' $file
+  # Entferne H70-HFF Range
+  for hex in 70 71 72 73 81 82 83 84 88 8D 92 93 95 96 97 98 99 9C A6; do
+    sed -i "/H${hex}V0/d" $file
+  done
+fi
+
+# HBWired-Geräte in fwmap eintragen
+sed -i -e 's/#HomeMatic Wired/#HBWired Community Devices\
+H70V0                  dummy.hex                      @0x0000         #HBW-LC-SW8-DR\
+H71V0                  dummy.hex                      @0x0000         #HBW-LC-DIM4-DR\
+H72V0                  dummy.hex                      @0x0000         #HBW-IO-12\
+H73V0                  dummy.hex                      @0x0000         #HBW-SENS-SC8\
+H81V0                  dummy.hex                      @0x0000         #HBW-1W-T10\
+H82V0                  dummy.hex                      @0x0000         #HBW-LC-BL-4\
+H83V0                  dummy.hex                      @0x0000         #HBW-LC-SW-8\
+H84V0                  dummy.hex                      @0x0000         #HBW-SEN-EP\
+H88V0                  dummy.hex                      @0x0000         #HBW-WDS-C7\
+H8DV0                  dummy.hex                      @0x0000         #HBW-SYS-PM\
+H92V0                  dummy.hex                      @0x0000         #HBW-LC-BL-8\
+H93V0                  dummy.hex                      @0x0000         #HBW-LC-SW-12\
+H95V0                  dummy.hex                      @0x0000         #HBW-SEN-KEY-12\
+H96V0                  dummy.hex                      @0x0000         #HBW-SC-10-DIM-6\
+H97V0                  dummy.hex                      @0x0000         #HBW-CC-VD\
+H98V0                  dummy.hex                      @0x0000         #HBW-SEN-DB-4\
+H99V0                  dummy.hex                      @0x0000         #HBW-CC-WW-SPKTS\
+H9CV0                  dummy.hex                      @0x0000         #HBW-CC-DT3-T6\
+HA6V0                  dummy.hex                      @0x0000         #HBW-SEN-SC-12-DR\
+\
+#HomeMatic Wired /' $file
+
+echo "  [OK] fwmap erfolgreich angepasst"
+
+# ===================================================================
+# SCHRITT 4: WebUI Device-Datenbank (DEVDB.tcl) anpassen
+# ===================================================================
+echo ""
+echo "Schritt 4: Passe WebUI Device-Datenbank an..."
+
+file="/www/config/devdescr/DEVDB.tcl"
+
+# Backup erstellen
+if [ ! -f "$file.backup" ]; then
+  echo "  Erstelle Backup: $file.backup"
+  cp $file $file.backup
+fi
+
+# Geräte hinzufügen (nur wenn noch nicht vorhanden)
+dev_count=0
+
+add_dev() {
+  if ! grep -q "$1" "$file"; then
+    sed -i -e "s/DEV_LIST {/DEV_LIST {$1 /" $file
+    sed -i -e "s/DEV_DESCRIPTION {/DEV_DESCRIPTION {$1 {$2} /" $file
+    dev_count=$((dev_count + 1))
+    echo "  [OK] $1"
+  fi
+}
+
+add_dev "HBW-LC-SW8-DR" "HBWired 8ch Switch"
+add_dev "HBW-LC-DIM4-DR" "HBWired 4ch Dimmer"
+add_dev "HBW-IO-12" "HBWired 12ch I/O"
+add_dev "HBW-SENS-SC8" "HBWired 8ch Sensor"
+add_dev "HBW-1W-T10" "HBWired 1Wire Temp"
+add_dev "HBW-LC-BL-4" "HBWired 4ch Blind"
+add_dev "HBW-LC-SW-8" "HBWired 8ch Switch v2"
+add_dev "HBW-SEN-EP" "HBWired Energy"
+add_dev "HBW-WDS-C7" "HBWired Weather"
+add_dev "HBW-SYS-PM" "HBWired Power"
+add_dev "HBW-LC-BL-8" "HBWired 8ch Blind"
+add_dev "HBW-LC-SW-12" "HBWired 12ch Switch"
+add_dev "HBW-SEN-KEY-12" "HBWired 12ch Key"
+add_dev "HBW-SC-10-DIM-6" "HBWired 10SW+6DIM"
+add_dev "HBW-CC-VD" "HBWired Valve"
+add_dev "HBW-SEN-DB-4" "HBWired Doorbell"
+add_dev "HBW-CC-WW-SPKTS" "HBWired Heating"
+add_dev "HBW-CC-DT3-T6" "HBWired Climate"
+add_dev "HBW-SEN-SC-12-DR" "HBWired 12ch Sensor"
+add_dev "HBW-DIS-KEY-4" "HBWired Display"
+
+echo "  [INFO] $dev_count neue Geräte hinzugefügt"
+
+mount -o remount,ro /
+
+echo ""
+echo "=========================================="
+echo "Installation abgeschlossen!"
+echo "=========================================="
+echo ""
+echo "WICHTIG: hs485d muss neu gestartet werden!"
+echo "  /etc/init.d/S60hs485d restart"
+echo ""
+echo "Installierte Gerätetypen: 20+"
+echo "Device-IDs: 0x70-0x73, 0x81-0x84, 0x88, 0x8D, 0x92-0x99, 0x9C, 0xA6"
+echo ""
+echo "=========================================="

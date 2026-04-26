@@ -1,0 +1,84 @@
+#!/bin/sh
+
+NAME=hbwired
+PIDFILE=/var/run/$NAME.pid
+LOGFILE=/var/log/$NAME.log
+
+ADDON_DIR=/usr/local/etc/config/addons/${NAME}
+WWW_DIR=/usr/local/etc/config/addons/www/${NAME}
+RCD_DIR=/usr/local/etc/config/rc.d
+
+start() 
+{
+  echo 'HBWired Addon: Starting installation...'
+  cd ${ADDON_DIR}
+  ./installHBWired
+  echo 'HBWired Addon: Installation completed'
+}
+
+stop() 
+{
+  echo 'HBWired Addon: Nothing to stop (passive addon)'
+}
+
+uninstall() 
+{
+  echo 'HBWired Addon: Uninstalling...'
+  
+  # Restore fwmap backup
+  if [ -f /firmware/fwmap.backup ]; then
+    mount -o remount,rw /
+    cp /firmware/fwmap.backup /firmware/fwmap
+    echo 'Restored fwmap from backup'
+  fi
+  
+  # Restore DEVDB.tcl backup
+  if [ -f /www/config/devdescr/DEVDB.tcl.backup ]; then
+    cp /www/config/devdescr/DEVDB.tcl.backup /www/config/devdescr/DEVDB.tcl
+    echo 'Restored DEVDB.tcl from backup'
+  fi
+  
+  # Remove XML files
+  rm -f /firmware/hs485types/hbw_*.xml
+  
+  mount -o remount,ro /
+  
+  # Remove addon directories
+  ${ADDON_DIR}/update_addon ${NAME}
+  rm -rf ${ADDON_DIR}
+  rm -rf ${WWW_DIR}
+  rm -f ${RCD_DIR}/${NAME}
+  
+  echo 'HBWired Addon: Uninstallation completed'
+  echo 'Please restart hs485d: /etc/init.d/S60hs485d restart'
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  uninstall)
+    uninstall
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  info)
+    echo "Info: <b>HBWired Community Addon</b><br>"
+    echo "Info: Support für HomeBrewWired Geräte (Thorsten Pferdekaemper Library)"
+    echo "Info: <a href='https://github.com/thorsten-pferdekaemper/HBWired' target='_blank'>HBWired on GitHub</a>"
+    echo "Version: $(cat ${ADDON_DIR}/VERSION 2>/dev/null || echo 'unknown')"
+    echo "Name: HBWired Community"
+    echo "Operations: uninstall restart"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|uninstall|info}"
+    exit 1
+    ;;
+esac
+
+exit 0
