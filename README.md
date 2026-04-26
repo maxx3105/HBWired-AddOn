@@ -53,11 +53,7 @@ Homematic/OpenCCU AddOn für HBWired-Geräte (HomeBrew Wired, basierend auf der 
 
 ### Gerät anlernen
 
-Da es sich um HBWired (RS485-Bus) handelt, werden die Geräte nicht per Funk angelernt, sondern über den RS485-Bus der CCU erkannt. Nach der Installation des Addons und einem Neustart von `hs485d` sollten die Geräte automatisch erkannt werden:
-
-```sh
-/etc/init.d/S60hs485d restart
-```
+Da es sich um HBWired (RS485-Bus) handelt, werden die Geräte nicht per Funk angelernt, sondern über den RS485-Bus der CCU erkannt. Nach der Installation des Addons und einem Neustart sollten die Geräte automatisch erkannt werden:
 
 ### Deinstallation
 
@@ -123,7 +119,7 @@ HBWired-CCU-Addon/
 
 ### 1.0.0 — 17.04.2024
 - Initiales Release
-- Orientiert sich an Jérômes [JP-HB-Devices-addon](https://github.com/jp112sdl/JP-HB-Devices-addon)
+- Orientierte sich an Jérômes [JP-HB-Devices-addon](https://github.com/jp112sdl/JP-HB-Devices-addon)
 - Unterstützung für HBW-1W-T10
 
 ---
