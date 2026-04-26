@@ -49,6 +49,7 @@ uninstall()
 
   # Remove translations
   sh ${ADDON_DIR}/inst_strings.sh uninstall 2>/dev/null
+  sh ${ADDON_DIR}/inst_webui.sh uninstall 2>/dev/null
 
   mount -o remount,ro / 2>/dev/null
 
