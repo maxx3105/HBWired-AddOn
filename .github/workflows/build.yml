@@ -26,6 +26,7 @@ jobs:
           chmod +x staging/rc.d/hbwired
           chmod +x staging/addon/installHBWired
           chmod +x staging/addon/inst_strings.sh
+          chmod +x staging/addon/inst_webui.sh
           chmod +x staging/ccu1/update_addon
           chmod +x staging/ccu2/update_addon
           chmod +x staging/ccu3/update_addon
