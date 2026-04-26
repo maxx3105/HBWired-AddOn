@@ -21,7 +21,7 @@ jobs:
       - name: Build tgz
         run: |
           cd src
-          tar czf ../hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz \
+          tar czf ../hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz \
             --owner=root --group=root \
             addon/ ccu1/ ccu2/ ccu3/ ccurm/ www/ rc.d/ update_script
 
@@ -29,9 +29,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2.3.2
         with:
-          name: "HBWired CCU Addon v${{ steps.version.outputs.VERSION }}"
+          name: "HBWired AddOn v${{ steps.version.outputs.VERSION }}"
           tag_name: ${{ github.ref_name }}
-          files: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
+          files: hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,9 +39,9 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2.3.2
         with:
-          name: "HBWired CCU Addon v${{ steps.version.outputs.VERSION }}"
+          name: "HBWired AddOn v${{ steps.version.outputs.VERSION }}"
           tag_name: ${{ steps.version.outputs.VERSION }}
-          files: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
+          files: hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
