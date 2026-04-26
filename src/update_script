@@ -24,6 +24,7 @@ chmod 755 ${WWW_DIR}
 mkdir -p ${ADDON_DIR}
 cp -af addon/* ${ADDON_DIR}/
 chmod 755 ${ADDON_DIR}
+chmod +x ${ADDON_DIR}/installHBWired
 
 # Plattformspezifische Dateien kopieren
 if [ "$1" = "CCU2" ]; then
@@ -35,6 +36,10 @@ elif [ "$1" = "HM-RASPBERRYMATIC" ]; then
 else
   cp -af ccu3/* ${ADDON_DIR}/
 fi
+chmod +x ${ADDON_DIR}/update_addon
+
+# WebUI-Button in hm_addons.cfg registrieren
+${ADDON_DIR}/update_addon $ADDON_NAME
 
 # Symbolic Links
 rm -f ${WWW_DIR}/VERSION.txt
