@@ -267,6 +267,7 @@ do_install() {
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAlarmMaxVoltage"      "Alarm Max. Spannung"
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwAlarmMinVoltage"      "Alarm Min. Spannung"
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwKeyEventAlarm"        "Tasten-Ereignis Alarm"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOwnAddress"           "Ger%E4teadresse"
 
     # Englisch
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwSendDeltaTemp"        "Send delta temperature"
@@ -351,6 +352,7 @@ do_install() {
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMaxVoltage"      "Alarm max. voltage"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMinVoltage"      "Alarm min. voltage"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwKeyEventAlarm"        "Key event alarm"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOwnAddress"           "Device address"
 
     echo "=== inst_strings.sh: install done ==="
 }
@@ -438,7 +440,8 @@ do_uninstall() {
         stringTableHbwCharsPerLine stringTableHbwDisplayLines stringTableHbwInvertDisplay \
         stringTableHbwRefreshRate stringTableHbwDefaultText stringTableHbwDisplayText \
         stringTableHbwDigits stringTableHbwFactor stringTableHbwAlarmMaxPower \
-        stringTableHbwAlarmMaxVoltage stringTableHbwAlarmMinVoltage stringTableHbwKeyEventAlarm
+        stringTableHbwAlarmMaxVoltage stringTableHbwAlarmMinVoltage stringTableHbwKeyEventAlarm \
+        stringTableHbwOwnAddress
     do
         del_tr "$STRINGTABLE_JS_DE" "${STKEY}"
         del_tr "$STRINGTABLE_JS_EN" "${STKEY}"
