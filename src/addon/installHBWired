@@ -164,8 +164,6 @@ add_dev "HBW-DIS-KEY-4" "HBWired Display"
 
 echo "  [INFO] $dev_count neue Geräte hinzugefügt"
 
-mount -o remount,ro /
-
 echo ""
 echo "=========================================="
 echo "Installation abgeschlossen!"
@@ -176,5 +174,194 @@ echo "  /etc/init.d/S60hs485d restart"
 echo ""
 echo "Installierte Gerätetypen: 20+"
 echo "Device-IDs: 0x70-0x73, 0x81-0x84, 0x88, 0x8D, 0x92-0x99, 0x9C, 0xA6"
+echo ""
+echo "=========================================="
+
+# ===================================================================
+# SCHRITT 5: Übersetzungen (stringtable) eintragen
+# ===================================================================
+echo ""
+echo "Schritt 5: Trage Übersetzungen ein..."
+
+STRINGTABLE="/www/config/stringtable_de.txt"
+TRANSLATE_JS="/www/webui/js/lang/de/translate.lang.stringtable.js"
+trans_count=0
+
+add_translation() {
+  key="$1"
+  value="$2"
+  js_key=$(echo "$key" | tr '|' '.')
+
+  # stringtable_de.txt: nur eintragen wenn Key noch nicht vorhanden
+  if [ -f "$STRINGTABLE" ]; then
+    if ! grep -q "^${key}	" "$STRINGTABLE"; then
+      printf "%s\t%s\n" "$key" "$value" >> "$STRINGTABLE"
+      trans_count=$((trans_count + 1))
+      echo "  [OK] $key"
+    fi
+  fi
+
+  # translate.lang.stringtable.js: nur eintragen wenn Key noch nicht vorhanden
+  if [ -f "$TRANSLATE_JS" ]; then
+    if ! grep -q "\"${js_key}\"" "$TRANSLATE_JS"; then
+      sed -i "s|^};|\"${js_key}\": \"${value}\",\n};|" "$TRANSLATE_JS"
+    fi
+  fi
+}
+
+# TEMPSENSOR (HBW-1W-T10)
+add_translation "TEMPSENSOR|SEND_DELTA_TEMP"       "Sendedifferenz Temperatur"
+add_translation "TEMPSENSOR|SEND_MIN_INTERVAL"     "Minimales Sendeintervall"
+add_translation "TEMPSENSOR|SEND_MAX_INTERVAL"     "Maximales Sendeintervall"
+add_translation "TEMPSENSOR|SEND_MAX_INTERVALL"    "Maximales Sendeintervall"
+add_translation "TEMPSENSOR|OFFSET"                "Offset"
+add_translation "TEMPSENSOR|ONEWIRE_TYPE"          "1-Wire Sensor Typ"
+add_translation "TEMPSENSOR|TEMPERATURE"           "Temperatur"
+
+# SENSOR (HBW-Sen-SC, HBW-Sen-DB)
+add_translation "SENSOR|EVENT_DELAYTIME"           "Ereignis Verzögerungszeit"
+add_translation "SENSOR|INPUT_LOCKED"              "Eingang gesperrt"
+add_translation "SENSOR|INVERTED"                  "Invertiert"
+add_translation "SENSOR|NOTIFY"                    "Benachrichtigung"
+add_translation "SENSOR|TRANSMIT_TRY_MAX"          "Max. Sendeversuche"
+
+# KEY (HBW-Sen-Key, HBW-Dis-Key)
+add_translation "KEY|INPUT_TYPE"                   "Eingangstyp"
+add_translation "KEY|INPUT_LOCKED"                 "Eingang gesperrt"
+add_translation "KEY|INVERTED"                     "Invertiert"
+add_translation "KEY|LONG_PRESS_TIME"              "Langdruckzeit"
+add_translation "KEY|PULLUP"                       "Pull-Up Widerstand"
+add_translation "KEY|REPEAT_LONG_PRESS"            "Langdruck wiederholen"
+add_translation "KEY|SUPPRESS_NUM"                 "Anzahl unterdrückte Ereignisse"
+add_translation "KEY|SUPPRESS_TIME"                "Unterdrückungszeit"
+add_translation "KEY|BUZZER"                       "Summer"
+
+# SWITCH (HBW-LC-Sw8, HBW-LC-Sw12)
+add_translation "SWITCH|INVERTED"                  "Invertiert"
+add_translation "SWITCH|LOGGING"                   "Logging"
+add_translation "SWITCH|OUTPUT_BEHAVIOUR"          "Ausgangsverhalten"
+add_translation "SWITCH|OUTPUT_LOCKED"             "Ausgang gesperrt"
+
+# DIMMER (HBW-LC-Dim4)
+add_translation "DIMMER|AUTO_BRIGHTNESS"           "Automatische Helligkeit"
+add_translation "DIMMER|AUTO_OFF_DELAY"            "Automatische Ausschaltverzögerung"
+add_translation "DIMMER|DIM_MAX_LEVEL"             "Maximaler Dimmpegel"
+add_translation "DIMMER|DIM_MIN_LEVEL"             "Minimaler Dimmpegel"
+add_translation "DIMMER|LOGGING"                   "Logging"
+add_translation "DIMMER|MAX_ON_TIME"               "Maximale Einschaltdauer"
+add_translation "DIMMER|MAX_OUTPUT_RANGE"          "Maximaler Ausgangsbereich"
+add_translation "DIMMER|MAX_TEMP"                  "Maximaltemperatur"
+add_translation "DIMMER|ON_TIME"                   "Einschaltdauer"
+add_translation "DIMMER|OUTPUT_VOLTAGE"            "Ausgangsspannung"
+add_translation "DIMMER|POWER_ON_STATE"            "Einschaltzustand"
+add_translation "DIMMER|PWM_RANGE"                 "PWM-Bereich"
+
+# BLIND (HBW-LC-Bl4, HBW-LC-Bl8)
+add_translation "BLIND|CHANGE_OVER_DELAY"          "Umschaltverzögerung"
+add_translation "BLIND|LOGGING"                    "Logging"
+add_translation "BLIND|MOTOR_STARTUP_DELAY"        "Motor-Anlaufverzögerung"
+add_translation "BLIND|REFERENCE_RUNNING_TIME_BOTTOM_TOP" "Referenzfahrtzeit unten-oben"
+add_translation "BLIND|REFERENCE_RUNNING_TIME_TOP_BOTTOM" "Referenzfahrtzeit oben-unten"
+add_translation "BLIND|REFERENCE_RUN_COUNTER"      "Referenzfahrtzähler"
+
+# VALVE (HBW-CC-VD)
+add_translation "VALVE|INVERTED"                   "Invertiert"
+add_translation "VALVE|LIMIT_LOWER"                "Untere Begrenzung"
+add_translation "VALVE|LIMIT_UPPER"                "Obere Begrenzung"
+add_translation "VALVE|LOCKED"                     "Gesperrt"
+add_translation "VALVE|LOGGING"                    "Logging"
+add_translation "VALVE|SWITCH_TIME"                "Schaltzeit"
+add_translation "VALVE|VALVE_ERROR_POS"            "Ventilposition bei Fehler"
+
+# ANALOG_INPUT / ANALOGSENSOR (HBW-IO-12, HBW-Sen-EP)
+add_translation "ANALOG_INPUT|SEND_DELTA_VALUE"    "Sendedifferenz Wert"
+add_translation "ANALOG_INPUT|SEND_MIN_INTERVAL"   "Minimales Sendeintervall"
+add_translation "ANALOG_INPUT|SEND_MAX_INTERVAL"   "Maximales Sendeintervall"
+add_translation "ANALOG_INPUT|UPDATE_INTERVAL"     "Aktualisierungsintervall"
+add_translation "ANALOGSENSOR|ENABLED"             "Aktiviert"
+add_translation "ANALOGSENSOR|NOTIFY"              "Benachrichtigung"
+add_translation "ANALOGSENSOR|SAMPLE_INTERVAL"     "Messintervall"
+
+# COUNTER_INPUT (HBW-IO-12)
+add_translation "COUNTER_INPUT|ENABLED"            "Aktiviert"
+add_translation "COUNTER_INPUT|INVERTED"           "Invertiert"
+add_translation "COUNTER_INPUT|SEND_DELTA_COUNT"   "Sendedifferenz Zähler"
+add_translation "COUNTER_INPUT|SEND_MIN_INTERVAL"  "Minimales Sendeintervall"
+add_translation "COUNTER_INPUT|SEND_MAX_INTERVAL"  "Maximales Sendeintervall"
+
+# WEATHER (HBW-WDS-C7)
+add_translation "WEATHER|RX_TIMEOUT"              "Empfangs-Timeout"
+add_translation "WEATHER|SEND_DELTA_TEMP"         "Sendedifferenz Temperatur"
+add_translation "WEATHER|SEND_MIN_INTERVAL"       "Minimales Sendeintervall"
+add_translation "WEATHER|SEND_MAX_INTERVAL"       "Maximales Sendeintervall"
+add_translation "WEATHER|SENSOR_ID"              "Sensor ID"
+add_translation "WEATHER|STORM_THRESHOLD_LEVEL"  "Sturmschwellwert"
+add_translation "WEATHER|STORM_TRIGGER_COUNT"    "Sturmauslöseanzahl"
+
+# DELTA_T (HBW-CC-WW-SPKTS)
+add_translation "DELTA_T|CYCLE_TIME"              "Zykluszeit"
+add_translation "DELTA_T|DELTA_TEMP"              "Temperaturdifferenz"
+add_translation "DELTA_T|ERROR_STATE"             "Fehlerzustand"
+add_translation "DELTA_T|HYSTERESIS"              "Hysterese"
+add_translation "DELTA_T|HYSTERESIS_FOR_DELTAT"   "Hysterese für Temperaturdifferenz"
+add_translation "DELTA_T|HYSTERESIS_FOR_T1_MAX"   "Hysterese für T1 Maximum"
+add_translation "DELTA_T|HYSTERESIS_FOR_T2_MIN"   "Hysterese für T2 Minimum"
+add_translation "DELTA_T|INVERTED"                "Invertiert"
+add_translation "DELTA_T|LOCKED"                  "Gesperrt"
+add_translation "DELTA_T|LOGGING"                 "Logging"
+add_translation "DELTA_T|PULS_ON_CYCLE"           "Puls Ein-Zyklus"
+add_translation "DELTA_T|T1_MAX"                  "T1 Maximum"
+add_translation "DELTA_T|T2_MIN"                  "T2 Minimum"
+add_translation "DELTA_T1|ERROR_RETRY"            "Fehlerwiederholung"
+add_translation "DELTA_T1|RECEIVE_MAX_INTERVAL"   "Maximales Empfangsintervall"
+add_translation "DELTA_T2|ERROR_RETRY"            "Fehlerwiederholung"
+add_translation "DELTA_T2|RECEIVE_MAX_INTERVAL"   "Maximales Empfangsintervall"
+
+# PID (HBW-CC-DT3-T6)
+add_translation "PID|CYCLE_TIME"                  "Zykluszeit"
+add_translation "PID|DEFAULT_SET_POINT"           "Standard-Sollwert"
+add_translation "PID|DERIVATIVE"                  "Differentialanteil (D)"
+add_translation "PID|INTEGRAL"                    "Integralanteil (I)"
+add_translation "PID|POWERON_MODE"                "Einschaltmodus"
+add_translation "PID|PROPORTIONAL"                "Proportionalanteil (P)"
+
+# DISPLAY (HBW-Dis-Key-4)
+add_translation "DISPLAY|AUTO_CYCLE"              "Automatischer Zyklus"
+add_translation "DISPLAY|CHARACTERS_PER_LINE"     "Zeichen pro Zeile"
+add_translation "DISPLAY|DISPLAY_LINES"           "Anzahl Zeilen"
+add_translation "DISPLAY|INVERT_DISPLAY"          "Display invertieren"
+add_translation "DISPLAY|POWER_ON_STATE"          "Einschaltzustand"
+add_translation "DISPLAY|REFRESH_RATE"            "Aktualisierungsrate"
+add_translation "DISPLAY_LINE|AUTO_CYCLE"         "Automatischer Zyklus"
+add_translation "DISPLAY_LINE|DEFAULT_TEXT"       "Standardtext"
+add_translation "DISPLAY_V_SWITCH|DISPLAY_TEXT"   "Anzeigetext"
+add_translation "DISPLAY_V_TEMP|DIGITS"           "Dezimalstellen"
+add_translation "DISPLAY_V_TEMP|FACTOR"           "Faktor"
+
+# BUS POWER / MODULE BUS VOLTAGE (HBW-Sys-PM)
+add_translation "BUS POWER|ALARM_MAX_POWER"       "Alarm Maximale Leistung"
+add_translation "BUS POWER|ALARM_MAX_VOLTAGE"     "Alarm Maximale Spannung"
+add_translation "BUS POWER|ALARM_MIN_VOLTAGE"     "Alarm Minimale Spannung"
+add_translation "BUS POWER|ENABLED"               "Aktiviert"
+add_translation "BUS POWER|KEY_EVENT_ALARM"       "Tasten-Ereignis Alarm"
+add_translation "BUS POWER|SAMPLE_RATE"           "Messrate"
+add_translation "BUS POWER|SEND_MIN_INTERVAL"     "Minimales Sendeintervall"
+add_translation "BUS POWER|SEND_MAX_INTERVAL"     "Maximales Sendeintervall"
+add_translation "MODULE BUS VOLTAGE|SEND_DELTA_VALUE"   "Sendedifferenz Wert"
+add_translation "MODULE BUS VOLTAGE|SEND_MIN_INTERVAL"  "Minimales Sendeintervall"
+add_translation "MODULE BUS VOLTAGE|SEND_MAX_INTERVAL"  "Maximales Sendeintervall"
+add_translation "MODULE BUS VOLTAGE|UPDATE_INTERVAL"    "Aktualisierungsintervall"
+
+echo "  [INFO] $trans_count neue Übersetzungen eingetragen"
+
+mount -o remount,ro /
+
+echo ""
+echo "=========================================="
+echo "Installation abgeschlossen!"
+echo "=========================================="
+echo ""
+echo "WICHTIG: hs485d muss neu gestartet werden!"
+echo "  /etc/init.d/S60hs485d restart"
 echo ""
 echo "=========================================="
