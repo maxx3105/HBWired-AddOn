@@ -6,16 +6,13 @@ on:
       - '*'
   workflow_dispatch:
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5
 
       - name: Read version
         id: version
@@ -40,7 +37,7 @@ jobs:
 
       - name: Upload artifact (non-tag builds)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v6
         with:
           name: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}
           path: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
