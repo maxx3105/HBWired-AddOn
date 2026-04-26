@@ -20,11 +20,12 @@ jobs:
 
       - name: Build tgz
         run: |
-          cd src
-          tar czf ../hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz \
+          mkdir -p staging
+          cp -r src/addon src/ccu1 src/ccu2 src/ccu3 src/ccurm src/www src/rc.d src/update_script staging/
+          tar czf hbwired-addon_${{ steps.version.outputs.VERSION }}.tgz \
             --owner=root --group=root \
-            --transform 's|^|./|' \
-            addon/ ccu1/ ccu2/ ccu3/ ccurm/ www/ rc.d/ update_script
+            -C staging \
+            .
 
       - name: Create Release (tag push)
         if: startsWith(github.ref, 'refs/tags/')
