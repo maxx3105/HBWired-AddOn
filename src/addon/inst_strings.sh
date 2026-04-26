@@ -247,7 +247,7 @@ do_install() {
     add_st "MODULE BUS VOLTAGE|UPDATE_INTERVAL"   "stringTableHbwUpdateInterval"
 
     # Deutsch - extension.js UND stringtable.js
-    for F in "${EXTENSION_DE}" "${STRINGTABLE_JS_DE}"; do
+    for F in "${STRINGTABLE_JS_DE}"; do
         add_tr "${F}" "stringTableHbwSendDeltaTemp"        "Sendedifferenz Temperatur"
         add_tr "${F}" "stringTableHbwSendDeltaValue"       "Sendedifferenz Wert"
         add_tr "${F}" "stringTableHbwSendDeltaCount"       "Sendedifferenz Z%E4hler"
@@ -333,7 +333,7 @@ do_install() {
     done
 
     # Englisch - extension.js UND stringtable.js
-    for F in "${EXTENSION_EN}" "${STRINGTABLE_JS_EN}"; do
+    for F in "${STRINGTABLE_JS_EN}"; do
         add_tr "${F}" "stringTableHbwSendDeltaTemp"        "Send delta temperature"
         add_tr "${F}" "stringTableHbwSendDeltaValue"       "Send delta value"
         add_tr "${F}" "stringTableHbwSendDeltaCount"       "Send delta count"
@@ -506,7 +506,7 @@ do_uninstall() {
         stringTableHbwDigits stringTableHbwFactor stringTableHbwAlarmMaxPower \
         stringTableHbwAlarmMaxVoltage stringTableHbwAlarmMinVoltage stringTableHbwKeyEventAlarm
     do
-        for F in "${EXTENSION_DE}" "${EXTENSION_EN}" "${STRINGTABLE_JS_DE}" "${STRINGTABLE_JS_EN}"; do
+        for F in "${STRINGTABLE_JS_DE}" "${STRINGTABLE_JS_EN}"; do
             del_tr "${F}" "${STKEY}"
         done
     done
