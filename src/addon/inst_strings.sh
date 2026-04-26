@@ -57,12 +57,19 @@ add_tr() {
     if ! grep -qF "\"${KEY}\"" "${FILE}"; then
         HB_INS="    \"${KEY}\" : \"${VAL}\","
         export HB_INS
-        awk 'BEGIN { ins=ENVIRON["HB_INS"] }
+        # Anker je nach Dateityp
+        case "${FILE}" in
+            *stringtable*) ANCHOR="};" ;;
+            *extension*)   ANCHOR="\"theEnd\"" ;;
+            *)             ANCHOR="};" ;;
+        esac
+        export ANCHOR
+        awk 'BEGIN { ins=ENVIRON["HB_INS"]; anchor=ENVIRON["ANCHOR"] }
              { lines[NR]=$0 }
              END {
                  last=0
                  for(i=NR;i>=1;i--) {
-                     if(lines[i]=="  }") { last=i; break }
+                     if(index(lines[i], anchor) > 0) { last=i; break }
                  }
                  prev=last-1
                  if(prev>=1 && lines[prev] !~ /,$/ && lines[prev] !~ /^[[:space:]]*\/\//) {
