@@ -46,3 +46,5 @@ ln -sf ${ADDON_DIR} ${WWW_DIR}/addon
 
 # sync filesystem
 sync
+
+exit 0
