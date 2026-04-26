@@ -50,6 +50,10 @@ add_tr() {
     local FILE="$1"
     local KEY="$2"
     local VAL="$3"
+    # Datei muss existieren
+    if [ ! -f "${FILE}" ]; then
+        return 0
+    fi
     if ! grep -qF "\"${KEY}\"" "${FILE}"; then
         HB_INS="    \"${KEY}\" : \"${VAL}\","
         export HB_INS
