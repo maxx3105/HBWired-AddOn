@@ -6,13 +6,16 @@ on:
       - '*'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Read version
         id: version
@@ -27,18 +30,17 @@ jobs:
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.3.2
         with:
           name: "HBWired CCU Addon v${{ steps.version.outputs.VERSION }}"
           tag_name: ${{ github.ref_name }}
           files: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact (non-tag builds)
         if: "!startsWith(github.ref, 'refs/tags/')"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}
           path: hbwired-ccu-addon_${{ steps.version.outputs.VERSION }}.tgz
