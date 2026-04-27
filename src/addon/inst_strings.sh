@@ -357,6 +357,24 @@ do_install() {
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOwnAddress"           "Device address"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRemoveSensor"         "Remove sensor"
 
+    # Geräteparameter -> extension.js (wird für Geräteansicht verwendet)
+    EXTENSION_DE=/www/webui/js/lang/de/translate.lang.extension.js
+    EXTENSION_EN=/www/webui/js/lang/en/translate.lang.extension.js
+    EXT_ANCHOR_DE="iconServiceMessage.*Servicemeldung"
+    EXT_ANCHOR_EN="iconServiceMessage.*Service message"
+    if [ -f "$EXTENSION_DE" ]; then
+        if [ -z "$(grep "stringTableHbwOwnAddress" $EXTENSION_DE)" ]; then
+            sed -i "s/\"iconServiceMessage\":.*\"Servicemeldung\",/&\n    \"stringTableHbwOwnAddress\" : \"Ger%E4teadresse\",/" $EXTENSION_DE
+            echo "  extension.js: +stringTableHbwOwnAddress (DE)"
+        fi
+    fi
+    if [ -f "$EXTENSION_EN" ]; then
+        if [ -z "$(grep "stringTableHbwOwnAddress" $EXTENSION_EN)" ]; then
+            sed -i "s/\"iconServiceMessage\":.*\"Service message\",/&\n    \"stringTableHbwOwnAddress\" : \"Device address\",/" $EXTENSION_EN
+            echo "  extension.js: +stringTableHbwOwnAddress (EN)"
+        fi
+    fi
+
     echo "=== inst_strings.sh: install done ==="
 }
 
