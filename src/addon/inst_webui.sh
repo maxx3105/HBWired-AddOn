@@ -7,7 +7,30 @@
 # ============================================================
 
 WEBUIFILE=/www/webui/webui.js
-WEBUISEARCH="elvST[[:space:]]*=[[:space:]]*new Array();"
+WEBUISEARCH_DEV="DEV_HIGHLIGHT[[:space:]]*=[[:space:]]*new Array();"
+WEBUISEARCH_ST="elvST[[:space:]]*=[[:space:]]*new Array();"
+
+add_device() {
+    local DEVICE="$1"
+    local DESC="$2"
+    local IMG="$3"
+    local THUMB="$4"
+    if [ ! -f "$WEBUIFILE" ]; then return 0; fi
+    if [ -z "$(grep "DEV_LIST.push('${DEVICE}')" $WEBUIFILE)" ]; then
+        local INSERT="\nDEV_HIGHLIGHT['${DEVICE}'] = new Object();\nDEV_LIST.push('${DEVICE}');\nDEV_DESCRIPTION['${DEVICE}']='${DESC}';\nDEV_PATHS['${DEVICE}'] = new Object();\nDEV_PATHS['${DEVICE}']['50'] = '\/config\/img\/devices\/50\/${THUMB}';\nDEV_PATHS['${DEVICE}']['250'] = '\/config\/img\/devices\/250\/${IMG}';"
+        sed -i "s/\(${WEBUISEARCH_DEV}\)/\1${INSERT}/g" $WEBUIFILE
+        echo "  webui device: +${DEVICE}"
+    fi
+}
+
+del_device() {
+    local DEVICE="$1"
+    if [ ! -f "$WEBUIFILE" ]; then return 0; fi
+    sed -i "/DEV_HIGHLIGHT\['${DEVICE}'\]/d" $WEBUIFILE
+    sed -i "/DEV_LIST.push('${DEVICE}')/d" $WEBUIFILE
+    sed -i "/DEV_DESCRIPTION\['${DEVICE}'\]/d" $WEBUIFILE
+    sed -i "/DEV_PATHS\['${DEVICE}'\]/d" $WEBUIFILE
+}
 
 add_elvst() {
     local PARAM="$1"
@@ -15,7 +38,7 @@ add_elvst() {
     if [ ! -f "$WEBUIFILE" ]; then return 0; fi
     if [ -z "$(grep "elvST\['${PARAM}'\]" $WEBUIFILE)" ]; then
         local INSERT="\nelvST['${PARAM}'] = '\${${STKEY}}';"
-        sed -i "s/\(${WEBUISEARCH}\)/\1${INSERT}/g" $WEBUIFILE
+        sed -i "s/\(${WEBUISEARCH_ST}\)/\1${INSERT}/g" $WEBUIFILE
         echo "  webui: +${PARAM}"
     fi
 }
@@ -28,6 +51,28 @@ del_elvst() {
 
 do_install() {
     echo "=== inst_webui.sh: install ==="
+
+    # Geräte in webui.js registrieren
+    add_device "HBW-LC-SW8-DR"   "HBWired 8ch Switch"    "HBW-LC-SW8-DR.png"    "HBW-LC-SW8-DR_thumb.png"
+    add_device "HBW-LC-DIM4-DR"  "HBWired 4ch Dimmer"    "HBW-LC-DIM4-DR.png"   "HBW-LC-DIM4-DR_thumb.png"
+    add_device "HBW-IO-12"       "HBWired 12ch I/O"      "HBW-IO-12.png"        "HBW-IO-12_thumb.png"
+    add_device "HBW-SENS-SC8"    "HBWired 8ch Sensor"    "HBW-SENS-SC8.png"     "HBW-SENS-SC8_thumb.png"
+    add_device "HBW-1W-T10"      "HBWired 1Wire Temp"    "HBW-1W-T10.png"       "HBW-1W-T10_thumb.png"
+    add_device "HBW-LC-BL-4"     "HBWired 4ch Blind"     "HBW-LC-BL-4.png"      "HBW-LC-BL-4_thumb.png"
+    add_device "HBW-LC-SW-8"     "HBWired 8ch Switch v2" "HBW-LC-SW-8.png"      "HBW-LC-SW-8_thumb.png"
+    add_device "HBW-SEN-EP"      "HBWired Energy"        "HBW-SEN-EP.png"       "HBW-SEN-EP_thumb.png"
+    add_device "HBW-WDS-C7"      "HBWired Weather"       "HBW-WDS-C7.png"       "HBW-WDS-C7_thumb.png"
+    add_device "HBW-SYS-PM"      "HBWired Power"         "HBW-SYS-PM.png"       "HBW-SYS-PM_thumb.png"
+    add_device "HBW-LC-BL-8"     "HBWired 8ch Blind"     "HBW-LC-BL-8.png"      "HBW-LC-BL-8_thumb.png"
+    add_device "HBW-LC-SW-12"    "HBWired 12ch Switch"   "HBW-LC-SW-12.png"     "HBW-LC-SW-12_thumb.png"
+    add_device "HBW-SEN-KEY-12"  "HBWired 12ch Key"      "HBW-SEN-KEY-12.png"   "HBW-SEN-KEY-12_thumb.png"
+    add_device "HBW-SC-10-DIM-6" "HBWired 10SW+6DIM"     "HBW-SC-10-DIM-6.png"  "HBW-SC-10-DIM-6_thumb.png"
+    add_device "HBW-CC-VD"       "HBWired Valve"         "HBW-CC-VD.png"        "HBW-CC-VD_thumb.png"
+    add_device "HBW-SEN-DB-4"    "HBWired Doorbell"      "HBW-SEN-DB-4.png"     "HBW-SEN-DB-4_thumb.png"
+    add_device "HBW-CC-WW-SPKTS" "HBWired Heating"       "HBW-CC-WW-SPKTS.png"  "HBW-CC-WW-SPKTS_thumb.png"
+    add_device "HBW-CC-DT3-T6"   "HBWired Climate"       "HBW-CC-DT3-T6.png"    "HBW-CC-DT3-T6_thumb.png"
+    add_device "HBW-SEN-SC-12-DR" "HBWired 12ch Sensor"  "HBW-SEN-SC-12-DR.png" "HBW-SEN-SC-12-DR_thumb.png"
+    add_device "HBW-DIS-KEY-4"   "HBWired Display"       "HBW-DIS-KEY-4.png"    "HBW-DIS-KEY-4_thumb.png"
 
     # Parameter-IDs ohne Kanaltyp-Prefix
     add_elvst "SEND_DELTA_TEMP"                 "stringTableHbwSendDeltaTemp"
@@ -118,6 +163,11 @@ do_install() {
 
 do_uninstall() {
     echo "=== inst_webui.sh: uninstall ==="
+
+    # Geräte aus webui.js entfernen
+    for DEV in HBW-LC-SW8-DR HBW-LC-DIM4-DR HBW-IO-12 HBW-SENS-SC8 HBW-1W-T10                HBW-LC-BL-4 HBW-LC-SW-8 HBW-SEN-EP HBW-WDS-C7 HBW-SYS-PM                HBW-LC-BL-8 HBW-LC-SW-12 HBW-SEN-KEY-12 HBW-SC-10-DIM-6                HBW-CC-VD HBW-SEN-DB-4 HBW-CC-WW-SPKTS HBW-CC-DT3-T6                HBW-SEN-SC-12-DR HBW-DIS-KEY-4; do
+        del_device "$DEV"
+    done
     for PARAM in \
         SEND_DELTA_TEMP SEND_DELTA_VALUE SEND_DELTA_COUNT \
         SEND_MIN_INTERVAL SEND_MAX_INTERVAL SEND_MAX_INTERVALL \
