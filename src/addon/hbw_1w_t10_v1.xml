@@ -21,6 +21,13 @@
 			<address index="0x0006"/>
 		</physical>	
 	</parameter>
+	<parameter id="Identify_LED">
+		<logical type="boolean" default="true"/>
+		<physical type="integer" size="1.0" interface="eeprom">
+			<address index="0x00FF"/>
+		</physical>
+		<conversion type="boolean_integer" invert="false"/>
+	</parameter>
 	<parameter id="OWN_ADDRESS">
 		<logical type="integer" default="1" min="1" max="9999999"/>
 		<physical type="integer" size="4" interface="eeprom">
