@@ -269,6 +269,7 @@ do_install() {
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwKeyEventAlarm"        "Tasten-Ereignis Alarm"
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwOwnAddress \
         stringTableHbwRemoveSensor"           "Ger%E4teadresse"
+    add_tr "$STRINGTABLE_JS_DE" "stringTableHbwIdentifyLED"         "Identifizierungs LED"
     add_tr "$STRINGTABLE_JS_DE" "stringTableHbwRemoveSensor"         "Sensor entfernen"
 
     # Englisch
@@ -355,6 +356,7 @@ do_install() {
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwAlarmMinVoltage"      "Alarm min. voltage"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwKeyEventAlarm"        "Key event alarm"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwOwnAddress"           "Device address"
+    add_tr "$STRINGTABLE_JS_EN" "stringTableHbwIdentifyLED"         "Identify LED"
     add_tr "$STRINGTABLE_JS_EN" "stringTableHbwRemoveSensor"         "Remove sensor"
 
     # Geräteparameter -> extension.js (wird für Geräteansicht verwendet)
