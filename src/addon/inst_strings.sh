@@ -464,7 +464,7 @@ do_uninstall() {
         stringTableHbwRefreshRate stringTableHbwDefaultText stringTableHbwDisplayText \
         stringTableHbwDigits stringTableHbwFactor stringTableHbwAlarmMaxPower \
         stringTableHbwAlarmMaxVoltage stringTableHbwAlarmMinVoltage stringTableHbwKeyEventAlarm \
-        stringTableHbwOwnAddress
+        stringTableHbwOwnAddress stringTableHbwIdentifyLED
     do
         del_tr "$STRINGTABLE_JS_DE" "${STKEY}"
         del_tr "$STRINGTABLE_JS_EN" "${STKEY}"
