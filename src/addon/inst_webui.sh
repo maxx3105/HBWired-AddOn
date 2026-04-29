@@ -156,6 +156,7 @@ do_install() {
     add_elvst "ALARM_MIN_VOLTAGE"              "stringTableHbwAlarmMinVoltage"
     add_elvst "KEY_EVENT_ALARM"                "stringTableHbwKeyEventAlarm"
     add_elvst "OWN_ADDRESS"                    "stringTableHbwOwnAddress"
+    add_elvst "Identify_LED"                    "stringTableHbwIdentifyLED"
     add_elvst "REMOVE_SENSOR"                  "stringTableHbwRemoveSensor"
 
     echo "=== inst_webui.sh: install done ==="
